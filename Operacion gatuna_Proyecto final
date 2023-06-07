@@ -1,0 +1,411 @@
+import pygame,sys
+import random
+import pandas as pd
+pygame.init()
+
+WHITE = (255, 255, 255)
+BLANCO = (255,255, 255)
+NEGRO = (0,0,0)
+
+pygame.display.set_caption("🐾 OPERACION GATUNA 🐾")
+size = (800,500)
+pantalla_menu = pygame.display.set_mode(size)
+pantalla_niveles =pygame.display.set_mode(size)
+pantalla_reglas = pygame.display.set_mode(size)
+pantalla_opciones = pygame.display.set_mode(size)
+pantalla_nivel1 =pygame.display.set_mode(size)
+pantalla_creditos = pygame.display.set_mode(size)
+pantalla_ganaste = pygame.display.set_mode(size)
+pantalla_perdiste = pygame.display.set_mode(size)
+pantalla_nivel2 = pygame.display.set_mode(size)
+pantalla_nivel3 = pygame.display.set_mode(size)
+
+pygame.mixer.music.load('juego/Sonidos/musica.mp3')
+pygame.mixer.music.play(2)
+sonido = pygame.mixer.Sound('juego/Sonidos/pop.mp3')
+sonido2 = pygame.mixer.Sound('juego/Sonidos/yay.mp3')
+sonido3 = pygame.mixer.Sound('juego/Sonidos/sad.mp3')
+
+fuente_pregunta = pygame.font.Font("juego/fuentes/IntroRustG-Base2Line.otf", 90)
+font = pygame.font.Font("juego/fuentes/IntroRustG-Base2Line.otf", 32)
+def cargar_csv(csv_file):
+    df = pd.read_csv(csv_file)
+    return df
+dataframe = cargar_csv("juego/datos/sumas.csv")
+
+def generar_pregunta(df, preguntas_anteriores):
+    filas_disponibles = df.index.difference(preguntas_anteriores).tolist()
+    if not filas_disponibles:
+        return None, None, None, None
+    fila_aleatoria = random.choice(filas_disponibles)
+    preguntas_anteriores.append(fila_aleatoria)
+    columna1, columna2, columna3, columna4, columna5 = df.loc[fila_aleatoria]
+    # Cambiar de posición aleatoriamente
+    if random.randint(0, 1) == 0:
+        pregunta = f"{columna1} + {columna2} = ?"
+        respuesta_correcta = str(columna3)
+        respuesta_incorrecta1 = str(columna4)
+        respuesta_incorrecta2 = str(columna5)
+    else:
+        pregunta = f"{columna2} + {columna1} = ?"
+        respuesta_correcta = str(columna3)
+        respuesta_incorrecta1 = str(columna5)
+        respuesta_incorrecta2 = str(columna4)
+    return pregunta, respuesta_correcta, respuesta_incorrecta1, respuesta_incorrecta2
+
+def mostrar_pregunta(pregunta, aciertos):
+    texto_pregunta = fuente_pregunta.render(pregunta, True, NEGRO)
+    text_rect = pygame.Rect(230, 30, 300, 180)
+    pantalla_nivel1.blit(texto_pregunta, text_rect)
+    
+    
+def cambiar_pregunta(df, preguntas_anteriores):
+    pregunta, respuesta_correcta, respuesta_incorrecta1, respuesta_incorrecta2 = generar_pregunta(df, preguntas_anteriores)
+    mostrar_pregunta(pregunta, aciertos)
+    return pregunta, respuesta_correcta, respuesta_incorrecta1, respuesta_incorrecta2
+
+def mostrar_opcion(button_rect, button_image, button_text):
+    pantalla_nivel1.blit(button_image, button_rect)
+    button_texto_pregunta = font.render(button_text, True, (0, 0, 0))
+    button_text_rect = button_texto_pregunta.get_rect(center=button_rect.center)
+    pantalla_nivel1.blit(button_texto_pregunta, button_text_rect)
+
+def verificar_respuesta(respuesta_seleccionada, respuesta_correcta):
+    if respuesta_seleccionada == respuesta_correcta:
+        return True
+    return False
+
+preguntas_anteriores = []
+aciertos = 0
+
+pregunta, respuesta_correcta, respuesta_incorrecta1, respuesta_incorrecta2 = cambiar_pregunta(dataframe, preguntas_anteriores)
+mostrar_pregunta(pregunta, aciertos)
+
+texto_botones = [str(respuesta_correcta), str(respuesta_incorrecta1), str(respuesta_incorrecta2)]
+def quesos_default():
+	imagenes_quesos = pygame.image.load("Juego/Imagenes/queso.png")
+	imagenes_quesos = pygame.transform.scale(imagenes_quesos,(100,100))
+	imagenes_botones = [
+    	imagenes_quesos,
+    	imagenes_quesos,
+    	imagenes_quesos
+	]
+	return imagenes_botones
+
+imagenes_botones = quesos_default()
+random.shuffle(imagenes_botones)
+button_rects = [
+    imagenes_botones[0].get_rect(center=(200, 270)),
+    imagenes_botones[1].get_rect(center=(400, 270)),
+    imagenes_botones[2].get_rect(center=(590, 270))
+]
+
+
+
+clock = pygame.time.Clock()
+fondo_menu = pygame.image.load('juego/Imagenes/PantallaInicio.jpg')
+fondo_menu = pygame.transform.scale(fondo_menu,size)
+fondo_niveles = pygame.image.load('juego/Imagenes/pantalla_niveles.png')
+fondo_niveles = pygame.transform.scale(fondo_niveles,size)
+fondo_reglas = pygame.image.load('juego/Imagenes/preglas.png')
+fondo_reglas = pygame.transform.scale(fondo_reglas,size)
+fondo_opciones = pygame.image.load('juego/Imagenes/popciones.png')
+fondo_opciones = pygame.transform.scale(fondo_opciones,size)
+fondo_nivel1 = pygame.image.load('juego/Imagenes/nivel1.png')
+fondo_nivel1= pygame.transform.scale(fondo_nivel1,size)
+fondo_nivel2 = pygame.image.load('juego/Imagenes/proceso.png')
+fondo_nivel2 = pygame.transform.scale(fondo_nivel2,size)
+fondo_nivel3 = pygame.transform.scale(fondo_nivel2,size)
+fondo_creditos = pygame.image.load('juego/Imagenes/creditos.png')
+fondo_creditos = pygame.transform.scale(fondo_creditos,size)
+fondo_ganaste = pygame.image.load('juego/Imagenes/pganaste.png')
+fondo_ganaste = pygame.transform.scale(fondo_ganaste,size)
+fondo_perdiste = pygame.image.load('juego/Imagenes/pperdiste.png')
+fondo_perdiste = pygame.transform.scale(fondo_perdiste,size)
+
+#Medidas de los botones del menu 
+ancho_boton = 150
+alto_boton = 45
+
+#Medidas de los botones de los depositos 
+ancho_niveles = 180
+alto_niveles = 135
+
+ancho_queso = 120
+alto_queso = 100
+
+#Imagenes de los botones del menu 
+boton_jugar = pygame.image.load("juego/Imagenes/boton_jugar.png")
+boton_jugar = pygame.transform.scale(boton_jugar,(ancho_boton,alto_boton))
+boton_creditos = pygame.image.load("juego/Imagenes/boton_creditos.png")
+boton_creditos = pygame.transform.scale(boton_creditos,(ancho_boton,alto_boton))
+boton_opciones =  pygame.image.load("juego/Imagenes/boton_opciones.png")
+boton_opciones =  pygame.transform.scale(boton_opciones,(ancho_boton,alto_boton))
+boton_reglas =   pygame.image.load("juego/Imagenes/boton_reglas.png")
+boton_reglas =  pygame.transform.scale(boton_reglas,(ancho_boton,alto_boton))
+boton_salir =  pygame.image.load("juego/Imagenes/boton_salir.png")
+boton_salir = pygame.transform.scale(boton_salir,(ancho_boton,alto_boton))
+boton_regresar = pygame.image.load("juego/Imagenes/boton_regresar.png")
+boton_regresar = pygame.transform.scale(boton_regresar,(ancho_boton,alto_boton))
+boton_creditos = pygame.image.load("juego/Imagenes/boton_creditos.png")
+boton_creditos = pygame.transform.scale(boton_creditos,(ancho_boton,alto_boton))
+boton_intdenuev = pygame.image.load("juego/Imagenes/boton_intdenuevo.png")
+boton_intdenuev = pygame.transform.scale(boton_intdenuev,(ancho_boton,alto_boton))
+boton_menu = pygame.image.load("juego/Imagenes/boton_menu.png")
+boton_menu = pygame.transform.scale(boton_menu,(ancho_boton,alto_boton))
+boton_signiv = pygame.image.load("juego/Imagenes/boton_signivel.png")
+boton_signiv = pygame.transform.scale(boton_signiv,(ancho_boton,alto_boton))
+
+#Cargar imagenes de los niveles
+boton_nivel1 =pygame.image.load("juego/Imagenes/boton_niv1.png")
+boton_nivel1= pygame.transform.scale(boton_nivel1,(ancho_niveles,alto_niveles))
+boton_nivel2 =pygame.image.load("juego/Imagenes/boton_niv2.png")
+boton_nivel2= pygame.transform.scale(boton_nivel2,(ancho_niveles,alto_niveles))
+boton_nivel3 =pygame.image.load("juego/Imagenes/boton_niv3.png")
+boton_nivel3= pygame.transform.scale(boton_nivel3,(ancho_niveles,alto_niveles))
+
+#Cargar imagenes de los botones de los quesos 
+boton_queso1 = pygame.image.load("juego/Imagenes/queso.png")
+boton_queso1= pygame.transform.scale(boton_queso1,(ancho_queso,alto_queso))
+boton_queso2 = pygame.image.load("juego/Imagenes/queso.png")
+boton_queso2= pygame.transform.scale(boton_queso2,(ancho_queso,alto_queso))
+boton_queso3 = pygame.image.load("juego/Imagenes/queso.png")
+boton_queso3= pygame.transform.scale(boton_queso3,(ancho_queso,alto_queso))
+
+#Botones de los quesos
+boton_queso1_rec = pygame.Rect(130,250,ancho_queso,alto_queso)
+boton_queso2_rec = pygame.Rect(330,250,ancho_queso,alto_queso)
+boton_queso3_rec = pygame.Rect(540,250,ancho_queso,alto_queso)
+
+
+#Botones rectangulo de los niveles 
+boton_nivel1_rec = pygame.Rect(90,90,ancho_niveles,alto_niveles)
+boton_nivel2_rec = pygame.Rect(310,92,ancho_niveles,alto_niveles)
+boton_nivel3_rec = pygame.Rect(540,90,ancho_niveles,alto_niveles)
+
+boton_jugar_rec = pygame.Rect(330,250,ancho_boton,alto_boton)
+boton_opciones_rec =  pygame.Rect(330,318,ancho_boton,alto_boton)
+boton_creditos_rec = pygame.Rect(330,330,ancho_boton,alto_boton)
+boton_reglas_rec = pygame.Rect(330,385,ancho_boton,alto_boton)
+boton_salir_rec = pygame.Rect(330,450,ancho_boton,alto_boton)
+boton_regresar_rec = pygame.Rect(610,425,ancho_boton,alto_boton)
+boton_creditos_rec = pygame.Rect(325,350,ancho_boton,alto_boton)
+boton_intdenuev_rec = pygame.Rect(330,385,ancho_boton,alto_boton)
+boton_menu_rec = pygame.Rect(330,450,ancho_boton,alto_boton)
+boton_menu2_rec = pygame.Rect(650,20,ancho_boton,alto_boton)
+boton_signiv_rec = pygame.Rect(330,385,ancho_boton,alto_boton)
+
+
+NEGRO = (0, 0, 0)
+BLANCO = (255, 255, 255)
+# Tamaño de la barra de sonido 
+barra_ancho = 800 / 4
+barra_alto = 10
+barra_x = 520 - barra_ancho - 20
+barra_y = 295 - 50 - barra_alto 
+
+# Estado de la barra de sonido
+punto_radio = 10
+punto_x = 600
+volumen = 5
+pygame.mixer.music.set_volume (volumen)
+
+# Función para dibujar la barra de sonido
+def dibujar_barra():
+	pygame.draw.rect(pantalla_opciones, NEGRO, (barra_x, barra_y, barra_ancho, barra_alto)) # Dibujar fondo
+	pygame.draw.circle(pantalla_opciones, BLANCO,(punto_x, barra_y + barra_alto / 2), punto_radio) # Dibujar
+
+fallos = 0
+
+pantalla_actual = "menu"
+
+while True:
+	for event in pygame.event.get():
+		if event.type == pygame.QUIT:
+			sys.exit()
+           
+		if event.type == pygame.MOUSEBUTTONDOWN:
+			if pantalla_actual == "menu":
+				if boton_jugar_rec.collidepoint(event.pos):
+					sonido.play()
+					pantalla_actual = "niveles"
+				if boton_reglas_rec.collidepoint(event.pos):
+					sonido.play()
+					pantalla_actual = "reglas"
+				if boton_opciones_rec.collidepoint(event.pos):
+					sonido.play()
+					pantalla_actual = "opciones"
+				if boton_salir_rec.collidepoint(event.pos):
+					sonido.play()
+					sys.exit()
+			if pantalla_actual == "niveles":
+				sonido.play()
+				if boton_nivel1_rec.collidepoint(event.pos):
+					sonido.play()
+					pantalla_actual = "nivel1"
+				if boton_nivel2_rec.collidepoint(event.pos):
+					sonido.play()
+					pantalla_actual= "nivel2"
+				if boton_nivel3_rec.collidepoint(event.pos):
+					sonido.play()
+					pantalla_actual = "nivel3"
+				if boton_regresar_rec.collidepoint(event.pos):
+						sonido.play()
+						pantalla_actual = "menu"
+			if pantalla_actual == "opciones":
+				sonido.play()
+				if boton_regresar_rec.collidepoint(event.pos):
+						sonido.play()
+						pantalla_actual = "menu"
+				if boton_creditos_rec.collidepoint(event.pos):
+						sonido.play()
+						pantalla_actual = "pantalla_creditos"
+				if boton_regresar_rec.collidepoint(event.pos):
+					sonido.play()
+					pantalla_actual = "menu"
+			if pantalla_actual == "reglas":
+				if boton_regresar_rec.collidepoint(event.pos):
+					sonido.play()
+					pantalla_actual = "menu"
+			if pantalla_actual == "pantalla_creditos":
+				sonido.play()
+				if boton_regresar_rec.collidepoint(event.pos):
+						sonido.play()
+						pantalla_actual = "opciones"
+			if pantalla_actual == "pantalla_ganaste":
+				sonido.play()
+				if boton_signiv_rec.collidepoint(event.pos):
+					sonido.play()
+					pantalla_actual = "nivel2"
+				if boton_menu_rec.collidepoint(event.pos):
+					sonido.play()
+					pantalla_actual = "menu"
+			if pantalla_actual == "pantalla_perdiste":
+				sonido.play()
+				if boton_intdenuev_rec.collidepoint(event.pos):
+					sonido.play()
+					pantalla_actual = "nivel1"
+				if boton_menu_rec.collidepoint(event.pos):
+					sonido.play()
+					pantalla_actual = "menu"
+			if pantalla_actual == "nivel1":
+				sonido.play()
+				if boton_menu2_rec.collidepoint(event.pos):
+					sonido.play()
+					pantalla_actual = "opciones"
+				for i, button_rect in enumerate(button_rects):
+					sonido.play()
+					if button_rect.collidepoint(event.pos):
+						sonido.play()
+						respuesta_seleccionada = texto_botones[i]
+						if verificar_respuesta(respuesta_seleccionada, respuesta_correcta):
+							aciertos += 1
+							acierto = True
+							imagenes_quesos = pygame.image.load("Juego/Imagenes/quesocorr.png")
+							imagenes_quesos = pygame.transform.scale(imagenes_quesos,(100,100))
+							imagenes_botones = [imagenes_quesos,
+							imagenes_quesos,
+							imagenes_quesos]
+						else:
+							fallaste = True
+							fallos += 1
+							imagenes_quesos = pygame.image.load("Juego/Imagenes/quesoinc.png")
+							imagenes_quesos = pygame.transform.scale(imagenes_quesos,(100,100))
+							imagenes_botones = [imagenes_quesos,
+							imagenes_quesos,
+							imagenes_quesos]
+
+						if aciertos >=4:
+							pantalla_actual = "pantalla_ganaste"
+							sonido2.play()
+							pantalla_ganaste.blit(fondo_ganaste,(0,0))
+							pantalla_ganaste.blit(boton_signiv,boton_signiv_rec)
+							pantalla_ganaste.blit(boton_menu,boton_menu_rec)
+							texto_aciertos = font.render(f"{aciertos}/5", True, NEGRO)
+							pantalla_ganaste.blit(texto_aciertos, (380, 240))
+							pygame.display.update()
+						elif fallos == 3:
+							pantalla_actual = "pantalla_perdiste"
+							sonido3.play()
+							pantalla_perdiste.blit(fondo_perdiste,(0,0))	
+							pantalla_perdiste.blit(boton_intdenuev,boton_intdenuev_rec)
+							pantalla_perdiste.blit(boton_menu,boton_menu_rec)
+							texto_aciertos = font.render(f"{aciertos}/5", True, NEGRO)
+							pantalla_perdiste.blit(texto_aciertos, (380, 240))
+							pygame.display.update()
+			    
+				pregunta, respuesta_correcta, respuesta_incorrecta1, respuesta_incorrecta2 = cambiar_pregunta(dataframe, preguntas_anteriores)
+				if pregunta is None:
+					done= True
+					pantalla_actual = "aciertos"
+					break
+				
+				texto_botones = [str(respuesta_correcta),str(respuesta_incorrecta1),str(respuesta_incorrecta2)]	
+				random.shuffle(imagenes_botones)
+				random.shuffle(button_rects)
+				break
+			if pantalla_actual == "nivel2":
+				if boton_regresar_rec.collidepoint(event.pos):
+					sonido.play()
+					pantalla_actual = "niveles"
+			if pantalla_actual == "nivel3":
+				if boton_regresar_rec.collidepoint(event.pos):
+					sonido.play()
+					pantalla_actual = "niveles"
+
+            
+	if pantalla_actual == "menu":
+		pantalla_menu.blit(fondo_menu, (0, 0))
+		pantalla_menu.blit(boton_jugar,boton_jugar_rec)
+		pantalla_menu.blit(boton_opciones,boton_opciones_rec)
+		pantalla_menu.blit(boton_reglas,boton_reglas_rec)
+		pantalla_menu.blit(boton_salir,boton_salir_rec)
+		pygame.display.update()
+	elif pantalla_actual == "niveles":
+		pantalla_niveles.blit(fondo_niveles,(0,0))
+		pantalla_niveles.blit(boton_regresar,boton_regresar_rec)
+		pantalla_niveles.blit(boton_nivel1,boton_nivel1_rec)
+		pantalla_niveles.blit(boton_nivel2,boton_nivel2_rec)
+		pantalla_niveles.blit(boton_nivel3,boton_nivel3_rec)
+		pygame.display.update()
+	elif  pantalla_actual == "reglas":
+		pantalla_reglas.blit(fondo_reglas,(0,0))
+		pantalla_reglas.blit(boton_regresar,boton_regresar_rec)
+		pygame.display.update()
+	elif pantalla_actual == "opciones":
+			pantalla_opciones.blit(fondo_opciones,(0,0))
+			pantalla_opciones.blit(boton_regresar,boton_regresar_rec)
+			pantalla_opciones.blit(boton_creditos,boton_creditos_rec)
+
+			# Actualizar el volumen en función de la posición del punto en la barra de sonido
+			if event.type == pygame.MOUSEMOTION and event.buttons [0] == 1:
+				if barra_x <= event.pos [0] <= barra_x + barra_ancho:
+					punto_x = event.pos [0]
+					volumen = (punto_x - barra_x) / barra_ancho
+					pygame.mixer.music.set_volume(volumen)
+			dibujar_barra()
+			pygame.display.update()
+	elif pantalla_actual == "nivel1":
+		pantalla_nivel1.blit(fondo_nivel1,(0,0))
+		pantalla_nivel1.blit(boton_menu,boton_menu2_rec)
+		for i,button_rect in enumerate(button_rects):
+			mostrar_opcion(button_rect, imagenes_botones[i], texto_botones[i])
+		mostrar_pregunta(pregunta, aciertos)
+		pygame.display.update()
+	elif pantalla_actual == "nivel2":
+		pantalla_nivel2.blit(fondo_nivel2,(0,0))
+		pantalla_nivel2.blit(boton_regresar,boton_regresar_rec)
+		pygame.display.update()
+	elif pantalla_actual == "nivel3":
+		pantalla_nivel3.blit(fondo_nivel2,(0,0))
+		pantalla_nivel3.blit(boton_regresar,boton_regresar_rec)
+		pygame.display.update()
+	elif pantalla_actual == "pantalla_creditos":
+		pantalla_creditos.blit(fondo_creditos,(0,0))
+		pantalla_creditos.blit(boton_regresar,boton_regresar_rec)
+		pygame.display.update()
+
+
+
+
+pygame.quit()
